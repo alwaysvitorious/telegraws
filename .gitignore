@@ -1,0 +1,7 @@
+bin/
+.vscode/
+.DS_Store
+*.log
+*.tmp
+.env
+config/config.json

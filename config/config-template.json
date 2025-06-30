@@ -1,0 +1,57 @@
+{
+	"global": {
+		"telegram": {
+			"botToken": "YOUR_BOT_TOKEN_HERE",
+			"chatId": "YOUR_CHAT_ID_HERE"
+		},
+		"deployment": {
+			"lambdaFunctionName": "your-function-name",
+			"lambdaCronExpression": ""
+		},
+		"monitoring": {
+			"timezone": "",
+			"defaultPeriod": 1,
+			"dailyReportHour": 9
+		}
+	},
+	"services": {
+		"ec2": {
+			"enabled": false,
+			"instanceId": ""
+		},
+		"s3": {
+			"enabled": false,
+			"bucketName": ""
+		},
+		"alb": {
+			"enabled": false,
+			"albName": ""
+		},
+		"cloudfront": {
+			"enabled": false,
+			"distributionId": ""
+		},
+		"cloudwatchAgent": {
+			"enabled": false,
+			"instanceId": ""
+		},
+		"cloudwatchLogs": {
+			"enabled": false,
+			"logGroupNames": []
+		},
+		"waf": {
+			"enabled": false,
+			"webACLId": "",
+			"webACLName": ""
+		},
+		"dynamodb": {
+			"enabled": false,
+			"tableNames": []
+		},
+		"rds": {
+			"enabled": false,
+			"clusterId": "",
+			"dbInstanceIdentifier": ""
+		}
+	}
+}
