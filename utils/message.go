@@ -17,7 +17,7 @@ func BuildMessage(cfg *config.Config, timeParams *config.TimeParams, allMetrics 
 	messageBuilder := strings.Builder{}
 
 	scheduleSeparator := "- - - - - - - - - - - - - - -"
-	dailySeparator := "* * * * * * * * * * * * * * *"
+	dailySeparator := "= = = = = = = = = = = = = = ="
 
 	if timeParams.IsDailyReport {
 		messageBuilder.WriteString("\n" + dailySeparator + "\n\n")
