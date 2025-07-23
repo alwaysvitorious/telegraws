@@ -146,12 +146,29 @@ func logic(ctx context.Context) error {
 		}
 	}
 
-	message := utils.BuildMessage(appConfig, timeParams, allMetrics)
+	message := utils.BuildMessage(appConfig, timeParams, allMetrics, appConfig.Global.Notifications.UseEmail)
 
-	err = utils.SendToTelegram(ctx, message, appConfig.Global.Telegram.BotToken, appConfig.Global.Telegram.ChatID)
-	if err != nil {
-		utils.Logger.Error("Failed to send Telegram message", zap.Error(err))
-		return err
+	if appConfig.Global.Notifications.UseEmail {
+		e := appConfig.Global.Notifications.Email
+		if err := utils.SendToEmail(
+			e.Host,
+			e.Port,
+			e.Username,
+			e.Password,
+			e.HeaderFrom,
+			e.EnvelopeFrom,
+			e.ToAddr,
+			message,
+		); err != nil {
+			utils.Logger.Error("Failed to send email", zap.Error(err))
+			return err
+		}
+	} else {
+		t := appConfig.Global.Notifications.Telegram
+		if err := utils.SendToTelegram(ctx, message, t.BotToken, t.ChatID); err != nil {
+			utils.Logger.Error("Failed to send Telegram message", zap.Error(err))
+			return err
+		}
 	}
 
 	return nil

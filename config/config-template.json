@@ -1,17 +1,28 @@
 {
 	"global": {
-		"telegram": {
-			"botToken": "YOUR_BOT_TOKEN_HERE",
-			"chatId": "YOUR_CHAT_ID_HERE"
+		"notifications": {
+			"useEmail": false,
+			"email": {
+				"host": "",
+				"port": 465,
+				"username": "",
+				"password": "",
+				"headerFrom": "",
+				"envelopeFrom": "",
+				"toAddr": ""
+			},
+			"telegram": {
+				"botToken": "YOUR_BOT_TOKEN_HERE",
+				"chatId": "YOUR_CHAT_ID_HERE"
+			}
 		},
 		"deployment": {
 			"lambdaFunctionName": "your-function-name",
 			"lambdaCronExpression": ""
 		},
 		"monitoring": {
-			"timezone": "",
 			"defaultPeriod": 1,
-			"dailyReportHour": 9
+			"dailyReportHourUTC": 9
 		}
 	},
 	"services": {

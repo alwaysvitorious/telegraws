@@ -200,6 +200,24 @@ create_eventbridge_schedule() {
     echo "✅ EventBridge schedule created and linked"
 }
 
+update_eventbridge_schedule() {
+    local rule_name="telegraws-${FUNCTION_NAME}-schedule"
+    local lambda_name="telegraws-${FUNCTION_NAME}"
+
+    echo "📅 Updating EventBridge schedule: $rule_name"
+
+    aws events put-rule \
+        --name "$rule_name" \
+        --schedule-expression "cron($CRON_EXPRESSION)" \
+        --description "Schedule for Telegraws $FUNCTION_NAME" \
+        --state ENABLED >/dev/null
+
+    aws events put-targets \
+        --rule "$rule_name" \
+        --targets "Id"="1","Arn"="arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${lambda_name}" >/dev/null
+}
+
+
 check_function_exists() {
     aws lambda get-function --function-name "telegraws-$FUNCTION_NAME" >/dev/null 2>&1
     return $?
@@ -257,6 +275,8 @@ if check_function_exists; then
         echo "❌ Failed to update Lambda function!"
         exit 1
     fi
+
+    update_eventbridge_schedule
 else
     echo "🆕 Lambda function doesn't exist, creating infrastructure..."
 

@@ -1,15 +1,17 @@
 # Telegraws
 
-**AWS Infrastructure Monitoring with Telegram Notifications**
+**AWS Infrastructure Monitoring with Telegram & Email (SMTP) Notifications**
 
-Telegraws is a lightweight, serverless AWS monitoring scheduled Lambda function
-that collects metrics from multiple AWS services and sends automated reports to
-Telegram.
+Telegraws is a lightweight, serverless AWS monitoring Lambda that collects
+metrics from multiple AWS services and sends automated reports to **Telegram or
+Email**.
 
 ## Features
 
 - **Serverless**: Deploys as AWS Lambda function with automatic scheduling.
 - **Telegram Integration**: Sends formatted monitoring reports to Telegram.
+- **Email Integration (SMTP)**: Optionally deliver the same reports via SMTP
+  email.
 - **IAC**: Automatically creates IAM roles, Lambda functions, and EventBridge
   schedules.
 - **Local Development**: Test locally with `--local` flag before deployment.
@@ -23,7 +25,9 @@ Telegram.
 - **AWS CLI** installed and configured in the same region as your monitoring
   infrastructure.
 - **Go 1.24+** installed.
-- **Telegram Bot** token and chat ID.
+- **Telegram Bot** token and chat ID (if using Telegram).
+- **SMTP credentials** (host, port, username, password, from, to) if using email
+  notifications.
 - **AWS Resources** to monitor.
 
 ## Dependencies
@@ -53,9 +57,8 @@ cp config/config-template.json config/config.json
   rule. All prefixed by 'telegraws-'.
 - lambdaCronExpression: EventBridge cron schedule (AWS format: Minutes Hours Day
   Month DayOfWeek Year).
-- timezone: Go time.LoadLocation compatible timezone.
 - defaultPeriod: Hours to look back for regular reports (1 = last hour).
-- dailyReportHour: Hour to send daily summary (respects timezone).
+- dailyReportHourUTC: Hour to send daily summary.
 - CloudWatch Logs collection counts INFO/WARN/ERROR so structured logging is
   required.
 - RDS monitoring currently supports Aurora engine.

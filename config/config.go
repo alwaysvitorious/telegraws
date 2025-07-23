@@ -23,6 +23,28 @@ func LoadEmbeddedConfig() (*Config, error) {
 	return &config, nil
 }
 
+type GlobalConfig struct {
+	Notifications NotificationsConfig `json:"notifications"`
+	Deployment    DeploymentConfig    `json:"deployment"`
+	Monitoring    MonitoringConfig    `json:"monitoring"`
+}
+
+type NotificationsConfig struct {
+	UseEmail bool           `json:"useEmail"`
+	Email    EmailConfig    `json:"email"`
+	Telegram TelegramConfig `json:"telegram"`
+}
+
+type EmailConfig struct {
+	Host         string `json:"host"`
+	Port         int    `json:"port"`
+	Username     string `json:"username"`
+	Password     string `json:"password"`
+	HeaderFrom   string `json:"headerFrom"`
+	EnvelopeFrom string `json:"envelopeFrom"`
+	ToAddr       string `json:"toAddr"`
+}
+
 type TelegramConfig struct {
 	BotToken string `json:"botToken"`
 	ChatID   string `json:"chatId"`
@@ -34,15 +56,8 @@ type DeploymentConfig struct {
 }
 
 type MonitoringConfig struct {
-	Timezone        string `json:"timezone"`
-	DefaultPeriod   int    `json:"defaultPeriod"`   // Hours
-	DailyReportHour int    `json:"dailyReportHour"` // Hour of day (0-23)
-}
-
-type GlobalConfig struct {
-	Telegram   TelegramConfig   `json:"telegram"`
-	Deployment DeploymentConfig `json:"deployment"`
-	Monitoring MonitoringConfig `json:"monitoring"`
+	DefaultPeriod      int `json:"defaultPeriod"`   // Hours
+	DailyReportHourUTC int `json:"dailyReportHour"` // Hour of day (0-23)
 }
 
 type ServiceConfig struct {
@@ -100,22 +115,38 @@ type Config struct {
 }
 
 func validateConfig(config *Config) error {
-	if config.Global.Telegram.BotToken == "" {
-		return fmt.Errorf("telegram botToken is required")
-	}
-	if config.Global.Telegram.ChatID == "" {
-		return fmt.Errorf("telegram chatId is required")
+	if config.Global.Notifications.UseEmail {
+		if config.Global.Notifications.Email.Host == "" {
+			return fmt.Errorf("email enabled but host is empty")
+		}
+		if config.Global.Notifications.Email.Port <= 0 {
+			return fmt.Errorf("email enabled but port is invalid")
+		}
+		if config.Global.Notifications.Email.Username == "" || config.Global.Notifications.Email.Password == "" {
+			return fmt.Errorf("email enabled but username/password missing")
+		}
+		if config.Global.Notifications.Email.HeaderFrom == "" {
+			return fmt.Errorf("email enabled but headerFrom is empty")
+		}
+		if config.Global.Notifications.Email.EnvelopeFrom == "" {
+			return fmt.Errorf("email enabled but envelopeFrom is empty")
+		}
+		if config.Global.Notifications.Email.ToAddr == "" {
+			return fmt.Errorf("email enabled but toAddr is empty")
+		}
+	} else {
+		// Telegram path
+		if config.Global.Notifications.Telegram.BotToken == "" {
+			return fmt.Errorf("telegram botToken is required when email is disabled")
+		}
+		if config.Global.Notifications.Telegram.ChatID == "" {
+			return fmt.Errorf("telegram chatId is required when email is disabled")
+		}
 	}
 	if config.Global.Deployment.LambdaFunctionName == "" {
 		return fmt.Errorf("deployment lambdaFunctionName is required")
 	}
-	if config.Global.Monitoring.Timezone == "" {
-		return fmt.Errorf("monitoring timezone is required")
-	}
-	if _, err := time.LoadLocation(config.Global.Monitoring.Timezone); err != nil {
-		return fmt.Errorf("invalid timezone '%s': %v", config.Global.Monitoring.Timezone, err)
-	}
-	if config.Global.Monitoring.DailyReportHour < 0 || config.Global.Monitoring.DailyReportHour > 23 {
+	if config.Global.Monitoring.DailyReportHourUTC < 0 || config.Global.Monitoring.DailyReportHourUTC > 23 {
 		return fmt.Errorf("dailyReportHour must be between 0 and 23")
 	}
 	if config.Global.Monitoring.DefaultPeriod <= 0 {
@@ -168,27 +199,21 @@ type TimeParams struct {
 }
 
 func (c *Config) GetTimeParams() (*TimeParams, error) {
-	loc, err := time.LoadLocation(c.Global.Monitoring.Timezone)
-	if err != nil {
-		return nil, err
-	}
+	nowUTC := time.Now().UTC()
 
-	now := time.Now().In(loc)
-	isDailyReport := now.Hour() == c.Global.Monitoring.DailyReportHour
+	isDailyReport := nowUTC.Hour() == c.Global.Monitoring.DailyReportHourUTC
 
-	var startTime time.Time
+	var start time.Time
 	if isDailyReport {
-		// Daily report: look back 24 hours
-		startTime = now.Add(-24 * time.Hour)
+		start = nowUTC.Add(-24 * time.Hour)
 	} else {
-		// Regular report: use configured period
-		startTime = now.Add(-time.Duration(c.Global.Monitoring.DefaultPeriod) * time.Hour)
+		start = nowUTC.Add(-time.Duration(c.Global.Monitoring.DefaultPeriod) * time.Hour)
 	}
 
 	return &TimeParams{
-		StartTime:     startTime,
-		EndTime:       now,
+		StartTime:     start,
+		EndTime:       nowUTC,
 		IsDailyReport: isDailyReport,
-		Location:      loc,
+		Location:      time.UTC,
 	}, nil
 }
