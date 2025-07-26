@@ -104,9 +104,3 @@ cp config/config-template.json config/config.json
 - Architecture Options: x86_64 Lambda support.
 - RDS Engines: Support for MySQL, PostgreSQL, SQL Server.
 - Advanced WAF: Multiple WAF configurations.
-
-## License
-
-This project is fully open source and available under the MIT License.
-
-Contributions are welcome! Please feel free to submit a Pull Request.
